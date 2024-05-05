@@ -1,15 +1,15 @@
-import { Label, TextInput, Checkbox, Button } from 'flowbite-react';
+import { Label, TextInput, Textarea, Checkbox, Button } from 'flowbite-react';
 
-export default function NewCommissionForm() {
+export default function CommissionForm() {
     return (
         <form>
             <div>
                 <Label htmlFor='title' value='Commission Title' />
-                <TextInput id='title' placeholder='Character drinking tea' required />
+                <TextInput id='title' placeholder='E.g. Character drinking tea' required />
             </div>
             <div>
                 <Label htmlFor='description' value='Description' />
-                {/* Add text field for description */}
+                <Textarea id='description' placeholder='Write a detailed description of what you want the commission to be about.' rows={8} />
             </div>
             <div>
                 <fieldset>
