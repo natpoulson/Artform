@@ -1,36 +1,36 @@
 const { Schema, Types } = require('mongoose');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { BCRYPT_HASHES } = require('../config/settings');
+const { BCRYPT_HASHCOUNT } = require('../config/settings');
 
 const userSchema = new Schema({
     email: { type: String, required: true, unique: true, index: true },
     displayName: { type: String },
     password: { type: String, required: true },
-    accountBalance: { type: Types.Decimal128 },
+    totalOwing: { type: Types.Decimal128 },
     commissions: [ { type: Types.ObjectID, ref: 'Commission' } ]
 }, { timestamps: true });
 
-userSchema.method('checkPassword', async function (enteredPassword) {
-    try {
-        if (await bcrypt.compare(enteredPassword, this.password)) {
-            return true;
-        }
-    } catch (error) {
-        return false;
-    }
+userSchema.method.checkPassword(async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
 });
 
-// Set the display name to the first part of a user's email if left blank
-userSchema.pre('save', function(next) {
+userSchema.method.encryptPassword(async function (newPassword) {
+    return await bcrypt.hash(newPassword, BCRYPT_HASHCOUNT);
+});
+
+userSchema.pre('save', async function(next) {
+    // Set the display name to the first part of a user's email if left blank
     if (!this.displayName) {
         this.displayName = /^[^@]+/.exec(this.email)[0];
     }
 
+    if (this.isNew || this.isModified('password')) {
+        this.password = await encryptPassword(this.password);
+    }
+
     next();
 });
-
-
 
 const User = mongoose.model("User", userSchema);
 
