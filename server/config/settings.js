@@ -1,4 +1,4 @@
-const statuses = [
+const STATUSES = [
     'NEW',
     'QUEUED',
     'IN_PROGRESS',
@@ -7,7 +7,9 @@ const statuses = [
     'REJECTED'
 ];
 
+const BCRYPT_HASHES = 10;
 
 module.exports = {
-    statuses
+    STATUSES,
+    BCRYPT_HASHES
 }
