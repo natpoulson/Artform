@@ -1,18 +1,16 @@
 import { Outlet } from "react-router-dom"
-import Sidebar from "./components/sidebar";
+import Header from "./components/header";
 import Footer from "./components/footer";
 
 function App() {
 
   return (
     <>
-      <Sidebar />
-        <div>
-          <main>
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+      <Footer />
     </>
   )
 }

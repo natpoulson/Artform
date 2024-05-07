@@ -7,7 +7,7 @@ export default function Error() {
     return (
         <div>
             <h2>{error.status || "Sorry!" }</h2>
-            <p>We've encountered a problem trying to access the requested resource. We recommend <Link to={previousPage || "/"}>going back</Link> and trying again.</p>
+            <p>We&apos;ve encountered a problem trying to access the requested resource. We recommend <Link to={previousPage || "/"}>going back</Link> and trying again.</p>
             <p>{error.message}</p>
         </div>
     );
