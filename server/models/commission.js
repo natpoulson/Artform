@@ -1,15 +1,15 @@
 const { Schema, Types } = require('mongoose');
 const mongoose = require('mongoose');
-const { statuses } = require('../config/settings');
+const { STATUSES } = require('../config/settings');
 
 const commissionSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
-    // To Add: Balance Schema
+    balance: { type: Types.ObjectId, ref: 'Balance' },
     status: {
         type: String,
         required: true,
-        enum: [...statuses]
+        enum: [...STATUSES]
     },
     anonymous: { type: Boolean },
     references: [ { type: Types.ObjectId, ref: 'Media' } ],
