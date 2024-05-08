@@ -1,11 +1,11 @@
 const { Schema } = require('mongoose');
-const { skuSchema } = require('./sku');
+const mongoose = require('mongoose');
 
 const optionSchema = new Schema({
-    label: { type: String, required: true },
-    isAddon: { type: Boolean },
-    availableSKUs: [ skuSchema ],
-    selectedSKU: skuSchema
+    name: { type: String, required: true },
+    price: { type: Schema.Types.Decimal128 }
 });
 
-module.exports = optionSchema;
+const Option = mongoose.model('Option', optionSchema);
+
+module.exports = Option;
