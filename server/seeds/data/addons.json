@@ -1,0 +1,13 @@
+[
+    {
+        "name":"Additional Character",
+        "hasQuantity": true,
+        "maxQuantity": 4,
+        "price": 10.00
+    },
+    {
+        "name":"Background",
+        "hasQuantity": false,
+        "price": 50
+    }
+]

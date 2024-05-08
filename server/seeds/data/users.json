@@ -1,0 +1,16 @@
+[
+    {
+        "email": "creator@example.com",
+        "displayName": "Creator",
+        "password": "Creator1!",
+        "totalOwing": 0.00,
+        "commissions": []
+    },
+    {
+        "email": "commissioner@example.com",
+        "displayName": "Commissioner",
+        "password": "Commission1!",
+        "totalOwing": 0.00,
+        "commissions": []
+    }
+]
