@@ -29,11 +29,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRATION = '2h';
 
 const CREATOR_EMAIL = "creator@example.com";
+const DEFAULT_DEPOSIT = 10;
 
 module.exports = {
     STATUSES,
     BCRYPT_HASHCOUNT,
     JWT_SECRET,
     JWT_EXPIRATION,
-    CREATOR_EMAIL
+    CREATOR_EMAIL,
+    DEFAULT_DEPOSIT
 }
