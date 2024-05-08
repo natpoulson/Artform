@@ -1,7 +1,7 @@
 const { Schema, Types } = require('mongoose');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { BCRYPT_HASHCOUNT } = require('../config/settings');
+const { BCRYPT_HASHCOUNT, CREATOR_EMAIL } = require('../config/settings');
 
 const userSchema = new Schema({
     email: { type: String, required: true, unique: true, index: true },
@@ -9,7 +9,7 @@ const userSchema = new Schema({
     password: { type: String, required: true },
     totalOwing: { type: Types.Decimal128 },
     commissions: [ { type: Types.ObjectID, ref: 'Commission' } ]
-}, { timestamps: true });
+}, { timestamps: true, virtuals: true });
 
 userSchema.method.checkPassword(async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
@@ -18,6 +18,13 @@ userSchema.method.checkPassword(async function (enteredPassword) {
 userSchema.method.encryptPassword(async function (newPassword) {
     return await bcrypt.hash(newPassword, BCRYPT_HASHCOUNT);
 });
+
+// Used when checking if the user should be presented with creator functions.
+// Will also be used to authenticate certain requests (i.e. Removing media, adjusting settings, etc.)
+userSchema.virtual('isCreator')
+    .get(function() {
+        return this.email === CREATOR_EMAIL;
+    });
 
 userSchema.pre('save', async function(next) {
     // Set the display name to the first part of a user's email if left blank
