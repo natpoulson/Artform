@@ -71,15 +71,27 @@ commissionSchema.post('save', async function() {
 
 commissionSchema.pre('save', async function(next) {
     try {
-        // Replicate privacy toggle to associated work on save so it can unpublish and mirror commission settings
-        if (this.isModified('private')) {
-            const work = await Work.findOne(cur => cur.commission === this.id);
+        // For replicating privacy and anonymity settings on commission
+        const work = await Work.findOne({commission: this.id});
+        const user = await User.findOne({_id: this.commissioner});
 
-            if (work) {
-                work.private = this.private;
-                await work.save();
+        if (this.isModified('private') && work) {
+            work.private = this.private;
+        }
+
+        if (this.isModified('anonymous') && work) {
+            if (this.anonymous) {
+                work.commissioner = "Anonymous";
+            } else {
+                work.commissioner = user.displayName
             }
         }
+
+        // Catch for either of the above to save the changes
+        if (this.isModified(['private', 'anonymous']) && work) {
+            await work.save();
+        }
+
     } catch (error) {
         next(error);
     }

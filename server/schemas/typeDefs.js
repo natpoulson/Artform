@@ -39,13 +39,22 @@ enum CommissionStatus {
     ${enumStatuses}
 }
 
+type CompressedMedia {
+    _id: ID!
+    name: String!
+    extension: String!
+    fullName: String!
+    compressed: String
+    createdAt: String
+    updatedAt: String
+}
+
 type Media {
     _id: ID!
     name: String!
     extension: String!
     fullName: String!
     original: String
-    compressed: String
     createdAt: String
     updatedAt: String
 }
@@ -140,6 +149,11 @@ type Balance {
     isFullyPaid: Boolean
 }
 
+input UserSearch {
+    id: ID
+    email: String
+}
+
 input UserAttributes {
     email: String
     displayName: String
@@ -152,6 +166,7 @@ input NewCommissionAttributes {
     description: String
     options: [Option]!
     addons: [CommissionAddon]
+    private: Boolean
     anonymous: Boolean
 }
 
@@ -190,22 +205,22 @@ input NewTransaction {
 }
 
 type Query {
-    users: [User]
-    user(id: ID, email: String): User
+    user(query: UserSearch!): User
+    me: User
     commissions: [Commission]
     commission(id: ID!): Commission
     balances: [Balance]
     balance(id: ID!): Balance
     works: [Work]
     work(id: ID!): Work
-    allMedia: [Media]
+    allMedia: [CompressedMedia]
     mediaById(id: ID!): Media
 }
 
 type Mutation {
     addUser(email: String!, displayName, password: String!): User
+    login(email: String!, password: String!): User
     updateUser(id: ID!, attributes: UserAttributes!): User
-    removeUser(id: ID!): String
     addCommission(attributes: NewCommissionAttributes!): Commission
     updateCommission(id: ID!, attributes: UpdateCommissionAttributes!): Commission
     addWork(attributes: NewWorkAttributes!): Work

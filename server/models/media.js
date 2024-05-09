@@ -15,8 +15,18 @@ mediaSchema.virtual('fullName')
         return `${this.name}.${this.extension}`
     });
 
+mediaSchema.virtual('serialCompressed')
+    .get(function () {
+        return this.compressed.toString('base64');
+    });
+
+mediaSchema.virtual('serialOriginal')
+    .get(function () {
+        return this.original.toString('base64');
+    });
+
 mediaSchema.pre('save', async function(next) {
-    if (this.original && this.isModified('origina')) {
+    if (this.original && this.isModified('original')) {
         try {
             // Use sharp to compress the image binary to webp
             const compressed = await sharp(this.original)

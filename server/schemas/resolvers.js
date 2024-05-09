@@ -1,11 +1,219 @@
 const { signToken, AuthError } = require('../utils/auth');
+const {
+    User,
+    Commission,
+    Balance,
+    Work,
+    Media
+} = require('../models');
+const {
+    gQLForbiddenErr,
+    gQLNotFoundErr,
+    gQLValidationErr
+} = require('../utils/resolverMiddleware');
+
+const isLoggedIn = (context) => {
+    if (!context.user) {
+        throw AuthError;
+    }
+}
 
 const resolvers = {
     Query: {
+        user: async (parent, { id, email }, context) => {
+            try {
+                const user = await User.findOne( {_id: id, email: email } );
+                if (user && context.user.isCreator) {
+                    return user;
+                }
+                gQLForbiddenErr("You don't have permission to look up users.");
+            } catch (error) {
+                return error;
+            }
+        },
+        me: async (parent, {}, context) => {
+            try {
+                isLoggedIn(context);
+                const user = await User.findById(context.user._id);
 
+                if (!user) {
+                    gQLNotFoundErr("Could not locate your profile. Please try logging in again.");
+                }
+
+                return user;
+            } catch (error) {
+                return error;
+            }
+        },
+        commissions: async (parent, {}, context) => {
+            try {
+                isLoggedIn(context);
+                if (context.user.isCreator) {
+                    const commissions = await Commission.find({});
+                    return commissions;
+                } else {
+                    const commissions = await Commission.find({commissioner: context.user._id});
+
+                    if (!commissions) {
+                        gQLNotFoundErr("No commissions found for this account.");
+                    }
+
+                    return commissions;
+                }
+                
+            } catch (error) {
+                return error;
+            }
+        },
+        commission: async (parent, { id }, context) => {
+            try {
+                isLoggedIn(context);
+                const commission = await Commission.findById(id);
+
+                if (!commission) {
+                    gQLNotFoundErr("Commission not found.");
+                }
+
+                if (!commission.commissioner === context.user._id && !context.user.isCreator) {
+                    gQLForbiddenErr("You are not authorised to view this commission.");
+                }
+
+                return commission;
+            } catch (error) {
+                return error;
+            }
+        },
+        balances: async (parent, {}, context) => {
+            try {
+                isLoggedIn(context);
+                if (context.user.isCreator) {
+                    return await Balance.find({});
+                }
+
+                const balances = await Balance.find({user: context.user._id});
+                if (!balances) {
+                    gQLNotFoundErr("No balances found for this account.");
+                }
+
+                return balances;
+            } catch (error) {
+                return error;
+            }
+        },
+        balance: async (parent, { id }, context) => {
+            try {
+                isLoggedIn(context);
+                const balance = await Balance.findById(id);
+
+                if (!balance || (!balance.user === context.user._id && !context.user.isCreator)) {
+                    gQLNotFoundErr("No balance under that account found.");
+                }
+
+                return balance;
+            } catch (error) {
+                return error;
+            }
+        },
+        works: async (parent, {}, context) => {
+            try {
+                if (context.user && context.user.isCreator) {
+                    const works = await Work.find({});
+
+                    if (works) {
+                        return works;
+                    }
+
+                    gQLNotFoundErr("No works found.");
+                }
+                // Only return the works that are published and not private
+                const works = await Work.find({ $and: { publish: true } });
+                if (works) {
+                    return works;
+                }
+
+                gQLNotFoundErr("No works found. Please check again later.");
+            } catch (error) {
+                return error;
+            }
+        },
+        work: async (parent, { id }, context) => {
+            try {
+                const work = await Work.findById(id);
+                if (context.user && context.user.isCreator) {
+                    if (work) {
+                        return work;
+                    }
+                    gQLNotFoundErr("No work found at this ID.")
+                }
+
+                if (!work.publish) {
+                    gQLNotFoundErr("No work found at this ID.")
+                }
+
+                return work;
+            } catch (error) {
+                return error;
+            }
+        },
+        allMedia: async (parent, { }, context) => {
+            try {
+                let media;
+
+                // original: 0 is excluding the binary of the raw media from results to improve performance
+                if (context.user && !context.user.isCreator) {
+                    media = await Media.find({ publish: true }, {original: 0, compressed: 0, serialOriginal: 0});
+                }
+
+                if (context.user.isCreator) {
+                    media = await Media.find({ }, { original: 0, compressed: 0, serialOriginal: 0 });
+                }
+
+                if (!media) {
+                    gQLNotFoundErr("No Media found.");
+                }
+
+                return media;
+
+            } catch (error) {
+                return error;
+            }
+        },
+        mediaById: async (parent, { id }) => {
+            try {
+                const media = await Media.findById(id, { compressed: 0, original: 0, serialCompressed: 0 });
+
+                if (!media) {
+                    gQLNotFoundErr("Specified Media could not be found.");
+                }
+
+                return media;
+            } catch (error) {
+                return error;
+            }
+        }
     },
     Mutation: {
+        addUser: async (parent, { email, password }) => {
 
+        },
+        login: async (parent, { email, password }) => {
+
+        },
+        updateUser: async (parent, { id, attributes }) => {
+
+        },
+        addCommission: async (parent, { title, description, options, addons, private, anonymous }, context) => {
+
+        },
+        updateCommission: async (parent, { id, attributes }, context) => {
+
+        },
+        addWork: async (parent, { title, description, commission, private, paid, publish, feature }, context) => {
+
+        },
+        updateWork: async (parent, { id, attributes }) => {
+
+        }
     }
 };
 

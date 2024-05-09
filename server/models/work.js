@@ -5,6 +5,7 @@ const workSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
     commission: { type: Types.ObjectId, ref: 'Commission' },
+    commissioner: { type: String },
     private: { type: Boolean },
     paid: { type: Boolean },
     publish: { type: Boolean, default: false },
