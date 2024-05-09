@@ -1,7 +1,7 @@
 const { Schema } = require('mongoose');
 const mongoose = require('mongoose');
 const { STATUSES } = require('../config/settings');
-const { User, Balance } = require('./index.js');
+const { User, Balance, Work } = require('./index.js');
 
 const commAddonSchema = new Schema({
     name: { type: String, required: true },
@@ -16,7 +16,7 @@ const commOptionSchema = new Schema({
 
 const commissionSchema = new Schema({
     title: { type: String, required: true },
-    description: { type: String },
+    description: { type: String, required: true },
     commissioner: { type: Schema.Types.ObjectId, ref: 'User' },
     balance: { type: Schema.Types.ObjectId, ref: 'Balance' },
     status: {
@@ -28,6 +28,7 @@ const commissionSchema = new Schema({
     options: [ commOptionSchema ],
     addons: [ commAddonSchema ],
     anonymous: { type: Boolean },
+    private: { type: Boolean },
     references: [ { type: Schema.Types.ObjectId, ref: 'Media' } ],
     final: { type: Schema.Types.ObjectId, ref: 'Media' }
 }, { timestamps: true });
@@ -52,8 +53,8 @@ commissionSchema.post('save', async function() {
     try {
         if (this.isNew) {
             const newBalance = await Balance.create({
-                userId: this.commissioner,
-                commissionId: this._id,
+                user: this.commissioner,
+                commission: this._id,
                 lineitems: [], // lineitems will automatically populate on save as it has dependency on the commission
                 transactions: [] // Making sure it's there by declaring an empty array
                 // total is calculated from the sum of lineitems on save
@@ -66,6 +67,24 @@ commissionSchema.post('save', async function() {
     } catch (error) {
         console.error("Error while creating a new balance: ", error);
     }
+});
+
+commissionSchema.pre('save', async function(next) {
+    try {
+        // Replicate privacy toggle to associated work on save so it can unpublish and mirror commission settings
+        if (this.isModified('private')) {
+            const work = await Work.findOne(cur => cur.commission === this.id);
+
+            if (work) {
+                work.private = this.private;
+                await work.save();
+            }
+        }
+    } catch (error) {
+        next(error);
+    }
+    
+    next();
 });
 
 commissionSchema.method.addOption(function (option) {

@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 
 const workSchema = new Schema({
     title: { type: String, required: true },
-    description: { type: String, required: true },
-    commissionId: { type: Types.ObjectId, ref: 'Commission' },
+    description: { type: String },
+    commission: { type: Types.ObjectId, ref: 'Commission' },
     private: { type: Boolean },
     paid: { type: Boolean },
-    publish: { type: Boolean },
-    feature: { type: Boolean },
+    publish: { type: Boolean, default: false },
+    feature: { type: Boolean, default: false },
     image: { type: Types.ObjectId, ref: 'Media' }
 });
 

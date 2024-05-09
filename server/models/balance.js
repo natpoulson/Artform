@@ -6,8 +6,8 @@ const { Commission } = require('./commission');
 const { DEFAULT_DEPOSIT } = require('../config/settings');
 
 const balanceSchema = new Schema({
-    userId: { type: Types.ObjectId, ref: 'User', required: true },
-    commissionId: { type: Types.ObjectId, ref: 'Commission', required: true },
+    user: { type: Types.ObjectId, ref: 'User', required: true },
+    commission: { type: Types.ObjectId, ref: 'Commission', required: true },
     lineitems: [ lineitemSchema ],
     total: { type: Types.Decimal128, required: true },
     depositPercentage: { type: Number, default: DEFAULT_DEPOSIT },
@@ -38,7 +38,7 @@ balanceSchema.virtual('isFullyPaid')
 
 balanceSchema.pre('save', async function (next) {
     if (this.isNew) {
-        const comm = await Commission.findById(this.commissionId);
+        const comm = await Commission.findById(this.commission);
 
         for (const option of comm.options) {
             this.lineitems.addToSet({

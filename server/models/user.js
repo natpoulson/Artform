@@ -2,9 +2,18 @@ const { Schema, Types } = require('mongoose');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { BCRYPT_HASHCOUNT, CREATOR_EMAIL } = require('../config/settings');
+const validator = require('validator');
 
 const userSchema = new Schema({
-    email: { type: String, required: true, unique: true, index: true },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+        trim: true,
+        lowercase: true,
+        validate: [validator.isEmail, "Please provide a valid email address"]
+    },
     displayName: { type: String },
     password: { type: String, required: true },
     totalOwing: { type: Types.Decimal128 },
