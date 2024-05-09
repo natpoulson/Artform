@@ -1,4 +1,4 @@
-const { Schema, Types } = require('mongoose');
+const { Schema } = require('mongoose');
 
 const transactionSchema = new Schema({
     type: {
@@ -11,7 +11,7 @@ const transactionSchema = new Schema({
         enum: [ "Confirmed", "Pending", "Processing", "Complete", "Cancelled", "Declined" ], // Move these out into configurable enums
         required: true
     },
-    amount: { type: Types.Decimal128, required: true },
+    amount: { type: Schema.Types.Decimal128, required: true },
     currency: { type: String, required: true },
     method: { type: String, required: true }
 });

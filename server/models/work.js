@@ -1,15 +1,16 @@
-const { Schema, Types } = require('mongoose');
+const { Schema } = require('mongoose');
 const mongoose = require('mongoose');
 
 const workSchema = new Schema({
     title: { type: String, required: true },
-    description: { type: String, required: true },
-    commissionId: { type: Types.ObjectId, ref: 'Commission' },
+    description: { type: String },
+    commission: { type: Schema.Types.ObjectId, ref: 'Commission' },
+    commissioner: { type: String },
     private: { type: Boolean },
     paid: { type: Boolean },
-    publish: { type: Boolean },
-    feature: { type: Boolean },
-    image: { type: Types.ObjectId, ref: 'Media' }
+    publish: { type: Boolean, default: false },
+    feature: { type: Boolean, default: false },
+    image: { type: Schema.Types.ObjectId, ref: 'Media' }
 });
 
 workSchema.pre('save', function () {

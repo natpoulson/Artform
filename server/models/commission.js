@@ -1,7 +1,8 @@
 const { Schema } = require('mongoose');
 const mongoose = require('mongoose');
 const { STATUSES } = require('../config/settings');
-const { User, Balance } = require('./index.js');
+const Balance = require('./balance');
+const Work  = require('./work');
 
 const commAddonSchema = new Schema({
     name: { type: String, required: true },
@@ -16,7 +17,7 @@ const commOptionSchema = new Schema({
 
 const commissionSchema = new Schema({
     title: { type: String, required: true },
-    description: { type: String },
+    description: { type: String, required: true },
     commissioner: { type: Schema.Types.ObjectId, ref: 'User' },
     balance: { type: Schema.Types.ObjectId, ref: 'Balance' },
     status: {
@@ -28,11 +29,13 @@ const commissionSchema = new Schema({
     options: [ commOptionSchema ],
     addons: [ commAddonSchema ],
     anonymous: { type: Boolean },
+    private: { type: Boolean },
     references: [ { type: Schema.Types.ObjectId, ref: 'Media' } ],
     final: { type: Schema.Types.ObjectId, ref: 'Media' }
 }, { timestamps: true });
 
 commissionSchema.pre('save', async function(next) {
+    const User = require('./user');
     try {
         if (this.isNew) {
             const user = await User.findById(this.commissioner);
@@ -52,8 +55,8 @@ commissionSchema.post('save', async function() {
     try {
         if (this.isNew) {
             const newBalance = await Balance.create({
-                userId: this.commissioner,
-                commissionId: this._id,
+                user: this.commissioner,
+                commission: this._id,
                 lineitems: [], // lineitems will automatically populate on save as it has dependency on the commission
                 transactions: [] // Making sure it's there by declaring an empty array
                 // total is calculated from the sum of lineitems on save
@@ -68,29 +71,60 @@ commissionSchema.post('save', async function() {
     }
 });
 
-commissionSchema.method.addOption(function (option) {
+commissionSchema.pre('save', async function(next) {
+    const User = require('./user');
+    try {
+        // For replicating privacy and anonymity settings on commission
+        const work = await Work.findOne({commission: this._id});
+        const user = await User.findOne({_id: this.commissioner});
+
+        if (this.isModified('private') && work) {
+            work.private = this.private;
+        }
+
+        if (this.isModified('anonymous') && work) {
+            if (this.anonymous) {
+                work.commissioner = "Anonymous";
+            } else {
+                work.commissioner = user.displayName
+            }
+        }
+
+        // Catch for either of the above to save the changes
+        if (this.isModified(['private', 'anonymous']) && work) {
+            await work.save();
+        }
+
+    } catch (error) {
+        next(error);
+    }
+    
+    next();
+});
+
+commissionSchema.methods.addOption = function (option) {
     if (!this.options.filter(opt => opt.name === option.name)) {
         this.options.push( {...option } );
         return this.save();
     }
-});
+};
 
-commissionSchema.method.removeOption(function (optionId) {
+commissionSchema.methods.removeOption = function (optionId) {
     this.options = this.options.filter(opt => !opt._id === optionId);
     return this.save();
-});
+};
 
-commissionSchema.method.addAddon(function (addon, qty = 0) {
+commissionSchema.methods.addAddon = function (addon, qty = 0) {
     if (!this.addons.filter(add => add.name === addon.name)) {
         this.addons.push( {...addon, quantity: qty} );
         return this.save();
     }
-});
+};
 
-commissionSchema.method.removeAddon(function (addonId) {
+commissionSchema.methods.removeAddon = function (addonId) {
     this.addons = this.addons.filter(add => !add._id === addonId);
     return this.save();
-});
+};
 
 const Commission = mongoose.model('Commission', commissionSchema);
 

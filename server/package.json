@@ -4,7 +4,7 @@
   "description": "Server-side component of the artform web app",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.5.0",
     "mongoose": "^8.3.2",
-    "sharp": "^0.33.3"
+    "sharp": "^0.33.3",
+    "validator": "^13.11.0"
   }
 }
