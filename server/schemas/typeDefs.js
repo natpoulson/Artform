@@ -36,7 +36,7 @@ type Attribute {
 }
 
 enum CommissionStatus {
-    ${enumStatuses}
+    ${enumStatuses()}
 }
 
 type CompressedMedia {
@@ -166,11 +166,22 @@ input UserAttributes {
     newPassword: String
 }
 
+input OptionInput {
+    name: String!
+    price: Float!
+}
+
+input CommissionAddonInput {
+    name: String!
+    price: Float!
+    quantity: Int
+}
+
 input NewCommissionAttributes {
     title: String!
     description: String
-    options: [Option]!
-    addons: [CommissionAddon]
+    options: [OptionInput]!
+    addons: [CommissionAddonInput]
     private: Boolean
     anonymous: Boolean
 }
@@ -225,7 +236,7 @@ type Query {
 }
 
 type Mutation {
-    addUser(email: String!, displayName, password: String!): Auth
+    addUser(email: String!, displayName: String, password: String!): Auth
     login(email: String!, password: String!): Auth
     updateUser(attributes: UserAttributes!): UpdateUserResult
     addCommission(attributes: NewCommissionAttributes!): Commission

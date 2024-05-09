@@ -193,7 +193,7 @@ const resolvers = {
             }
         }
     },
-    UpdatedUserResult: {
+    UpdateUserResult: {
         __resolveType(obj) {
             if (obj.token) {
                 return 'Auth';
