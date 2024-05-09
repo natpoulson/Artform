@@ -1,4 +1,4 @@
-const { Schema, Types } = require('mongoose');
+const { Schema } = require('mongoose');
 const mongoose = require('mongoose');
 const sharp = require('sharp');
 
@@ -6,8 +6,8 @@ const mediaSchema = new Schema({
     // Because there's a 16 MB hard limit per document, we need to limit uploads to allow for headroom
     name: { type: String, required: true },
     extension: { type: String, required: true },
-    original: { type: Types.Buffer, maxlength: 8 * 1024 * 1024 }, // 8 MB Limit
-    compressed: { type: Types.Buffer, maxlength: 6 * 1024 * 1024 } // 6 MB Limit
+    original: { type: Schema.Types.Buffer, maxlength: 8 * 1024 * 1024 }, // 8 MB Limit
+    compressed: { type: Schema.Types.Buffer, maxlength: 6 * 1024 * 1024 } // 6 MB Limit
 }, { virtuals: true, timestamps: true });
 
 mediaSchema.virtual('fullName')
@@ -34,7 +34,7 @@ mediaSchema.pre('save', async function(next) {
                 .toBuffer(); // Outputs to a format that can be saved to BSON
             this.compressed = compressed;
         } catch (error) {
-            return next(err);
+            return next(error);
         }
     }
 

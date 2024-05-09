@@ -14,10 +14,9 @@ const {
 } = require('../models');
 
 db.once('open', async function () {
-    // Wipe all the collections in the database
     const collections = await db.listCollections();
     for (const collection of collections) {
-        await db.dropCollection(collection);
+        await db.dropCollection(collection.name);
     }
 
     // Initialise sample addons and options
@@ -37,7 +36,9 @@ db.once('open', async function () {
     }
 
     // Create sample users
-    userData.forEach(async (item) => await User.create(item));
+    for (const tempUser of userData) {
+        await User.create(tempUser);
+    }
 
     const commUser = await User.findOne({
         email: userData[userData.length - 1].email
@@ -54,9 +55,12 @@ db.once('open', async function () {
     await Commission.create({
         title: "Sample Commission",
         description: "This is a simple commission to test the system. I would like you to draw me a cat. Any cat will do.",
-        commissioner: commUser._id,
+        commissioner: commUser.id,
         options: optionSet.filter(opt => opt.name === "Sketch"),
         addons: commAddons,
         anonymous: false
     });
+
+    console.log("Seeding complete");
+    process.exit(0);
 });

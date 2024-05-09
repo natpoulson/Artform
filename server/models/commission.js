@@ -1,7 +1,8 @@
 const { Schema } = require('mongoose');
 const mongoose = require('mongoose');
 const { STATUSES } = require('../config/settings');
-const { User, Balance, Work } = require('./index.js');
+const Balance = require('./balance');
+const Work  = require('./work');
 
 const commAddonSchema = new Schema({
     name: { type: String, required: true },
@@ -34,6 +35,7 @@ const commissionSchema = new Schema({
 }, { timestamps: true });
 
 commissionSchema.pre('save', async function(next) {
+    const User = require('./user');
     try {
         if (this.isNew) {
             const user = await User.findById(this.commissioner);
@@ -70,9 +72,10 @@ commissionSchema.post('save', async function() {
 });
 
 commissionSchema.pre('save', async function(next) {
+    const User = require('./user');
     try {
         // For replicating privacy and anonymity settings on commission
-        const work = await Work.findOne({commission: this.id});
+        const work = await Work.findOne({commission: this._id});
         const user = await User.findOne({_id: this.commissioner});
 
         if (this.isModified('private') && work) {
@@ -99,29 +102,29 @@ commissionSchema.pre('save', async function(next) {
     next();
 });
 
-commissionSchema.method.addOption(function (option) {
+commissionSchema.methods.addOption = function (option) {
     if (!this.options.filter(opt => opt.name === option.name)) {
         this.options.push( {...option } );
         return this.save();
     }
-});
+};
 
-commissionSchema.method.removeOption(function (optionId) {
+commissionSchema.methods.removeOption = function (optionId) {
     this.options = this.options.filter(opt => !opt._id === optionId);
     return this.save();
-});
+};
 
-commissionSchema.method.addAddon(function (addon, qty = 0) {
+commissionSchema.methods.addAddon = function (addon, qty = 0) {
     if (!this.addons.filter(add => add.name === addon.name)) {
         this.addons.push( {...addon, quantity: qty} );
         return this.save();
     }
-});
+};
 
-commissionSchema.method.removeAddon(function (addonId) {
+commissionSchema.methods.removeAddon = function (addonId) {
     this.addons = this.addons.filter(add => !add._id === addonId);
     return this.save();
-});
+};
 
 const Commission = mongoose.model('Commission', commissionSchema);
 

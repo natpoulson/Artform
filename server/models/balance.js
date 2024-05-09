@@ -1,8 +1,8 @@
 const { Schema, Types } = require('mongoose');
 const mongoose = require('mongoose');
-const { transactionSchema } = require('./transaction');
-const { lineitemSchema } = require(('./lineitem'));
-const { Commission } = require('./commission');
+const transactionSchema = require('./transaction');
+const lineitemSchema = require('./lineitem');
+const Commission = require('./commission');
 const { DEFAULT_DEPOSIT } = require('../config/settings');
 
 const balanceSchema = new Schema({
@@ -41,7 +41,7 @@ balanceSchema.pre('save', async function (next) {
         const comm = await Commission.findById(this.commission);
 
         for (const option of comm.options) {
-            this.lineitems.addToSet({
+            this.lineitems.push({
                 name: option.name,
                 type: 'Option',
                 price: option.price
@@ -49,7 +49,7 @@ balanceSchema.pre('save', async function (next) {
         }
 
         for (const addon of comm.addons) {
-            this.lineitems.addToSet({
+            this.lineitems.push({
                 name: addon.name,
                 type: 'Addon',
                 price: addon.price,
