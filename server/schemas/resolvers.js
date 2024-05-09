@@ -351,8 +351,30 @@ const resolvers = {
             }
 
         },
-        addWork: async (parent, { title, description, commission, private, paid, publish, feature }, context) => {
-            // TBA
+        addWork: async (parent, { title, description, commission, private, publish, feature }, context) => {
+            try {
+                isLoggedIn(context);
+                if (!context.user.isCreator) {
+                    gQLForbiddenErr("You must be the creator to add works.");
+                }
+                const newWork = {};
+                newWork.title = title,
+                newWork.description = description,
+                newWork.commission = commission,
+                newWork.private = private,
+                newWork.publish = publish,
+                newWork.feature = feature
+
+                const work = await Work.create(newWork);
+
+                if (!work) {
+                    gQLGeneralFailure("Failed to create new work.");
+                }
+
+                return work;
+            } catch (error) {
+                return error;
+            }
         },
         updateWork: async (parent, { id, attributes }) => {
             // TBA

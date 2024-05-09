@@ -209,7 +209,6 @@ input NewWorkAttributes {
     description: String
     commission: ID!
     private: Boolean
-    paid: Boolean
     publish: Boolean
     feature: Boolean
 }
@@ -218,7 +217,6 @@ input UpdateWorkAttributes {
     title: String
     description: String
     private: Boolean
-    paid: Boolean
     publish: Boolean
     feature: Boolean
 }
