@@ -1,4 +1,4 @@
-const { signToken, AuthError } = require('../utils/auth');
+const { signToken, AuthError, checkPasswordStrength } = require('../utils/auth');
 const {
     User,
     Commission,
@@ -9,7 +9,8 @@ const {
 const {
     gQLForbiddenErr,
     gQLNotFoundErr,
-    gQLValidationErr
+    gQLValidationErr,
+    gQLGeneralFailure
 } = require('../utils/resolverMiddleware');
 
 const isLoggedIn = (context) => {
@@ -192,27 +193,113 @@ const resolvers = {
             }
         }
     },
+    UpdatedUserResult: {
+        __resolveType(obj) {
+            if (obj.token) {
+                return 'Auth';
+            } else {
+                return 'User';
+            }
+        }
+    },
     Mutation: {
         addUser: async (parent, { email, password }) => {
+            try {
+                if (!checkPasswordStrength(password)) {
+                    gQLValidationErr("The password does not meet complexity requirements. It must be at least 8 characters long, with at least one of each type (Uppercase, Lowercase, Numbers, and Symbols).")
+                }
+    
+                const user = await User.create({
+                    email: email,
+                    password: password
+                });
+    
+                if (!user) {
+                    gQLGeneralFailure("We couldn't generate an account for you. Please try again later.");
+                }
 
+                const token = signToken(user);
+                return { token, user };
+
+            } catch (error) {
+                return error;
+            }
+            
         },
         login: async (parent, { email, password }) => {
+            try {
+                const user = await User.find({ email: email });
 
+                if (!user || !user.checkPassword(password)) {
+                    throw AuthError;
+                }
+
+                const token = signToken(user);
+                return { token, user };
+
+            } catch (error) {
+                return error;
+            }
         },
-        updateUser: async (parent, { id, attributes }) => {
+        updateUser: async (parent, { attributes }, context) => {
+            try {
+                if (!context.user) {
+                    throw AuthError;
+                }
 
+                const user = await User.findById(context.user._id);
+
+                const { email, displayName, currentPassword, newPassword } = attributes;
+
+                if (!user) {
+                    gQLNotFoundErr("Could not locate your user account. Please try again later.");
+                }
+
+                let issueToken = false;
+
+                if (displayName) {
+                    user.displayName = displayName;
+                }
+                if (currentPassword === newPassword) {
+                    throw gQLValidationErr("Your new password can't be the same as your old password.");
+                }
+                if (currentPassword && user.checkPassword(currentPassword) && newPassword) {
+                    user.password = newPassword;
+                    issueToken = true;
+                }
+                if (email && currentPassword && user.checkPassword(currentPassword)) {
+                    user.email = email;
+                    issueToken = true;
+                }
+
+                const updatedUser = await user.save();
+
+                if (!updatedUser) {
+                    throw gQLGeneralFailure("Failed to update user account.");
+                }
+
+                if (issueToken) {
+                    const token = signToken(user);
+                    return { token, user };
+                } else {
+                    return user;
+                }
+
+            } catch (error) {
+                return error;
+            }
         },
         addCommission: async (parent, { title, description, options, addons, private, anonymous }, context) => {
-
+            // TBA
         },
         updateCommission: async (parent, { id, attributes }, context) => {
-
+            // TBA
         },
         addWork: async (parent, { title, description, commission, private, paid, publish, feature }, context) => {
-
+            // TBA
         },
         updateWork: async (parent, { id, attributes }) => {
-
+            // TBA
         }
     }
 };

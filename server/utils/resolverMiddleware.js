@@ -24,5 +24,13 @@ module.exports = {
                 status: 400
             }
         })
+    },
+    gQLGeneralFailure: function (message) {
+        throw new GraphQLError(message, {
+            extensions: {
+                code: "INTERNAL_ERROR",
+                status: 500
+            }
+        })
     }
 }

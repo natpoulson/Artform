@@ -15,7 +15,10 @@ const userSchema = new Schema({
         validate: [validator.isEmail, "Please provide a valid email address"]
     },
     displayName: { type: String },
-    password: { type: String, required: true },
+    password: {
+        type: String,
+        required: true
+    },
     totalOwing: { type: Types.Decimal128 },
     commissions: [ { type: Types.ObjectID, ref: 'Commission' } ]
 }, { timestamps: true, virtuals: true });

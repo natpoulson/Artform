@@ -88,6 +88,11 @@ type Work {
     image: Media
 }
 
+type Auth {
+    token: String!
+    user: User!
+}
+
 type User {
     _id: ID!
     email: String!
@@ -204,6 +209,8 @@ input NewTransaction {
     method: String!
 }
 
+union UpdateUserResult = User | Auth
+
 type Query {
     user(query: UserSearch!): User
     me: User
@@ -218,9 +225,9 @@ type Query {
 }
 
 type Mutation {
-    addUser(email: String!, displayName, password: String!): User
-    login(email: String!, password: String!): User
-    updateUser(id: ID!, attributes: UserAttributes!): User
+    addUser(email: String!, displayName, password: String!): Auth
+    login(email: String!, password: String!): Auth
+    updateUser(attributes: UserAttributes!): UpdateUserResult
     addCommission(attributes: NewCommissionAttributes!): Commission
     updateCommission(id: ID!, attributes: UpdateCommissionAttributes!): Commission
     addWork(attributes: NewWorkAttributes!): Work
