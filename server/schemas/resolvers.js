@@ -357,7 +357,7 @@ const resolvers = {
         updateWork: async (parent, { id, attributes }) => {
             // TBA
         },
-        setAbout: async (parent, { bio, willDo, wontDo, askMe, conditions, portrait, banner }, context) => {
+        setAboutContent: async (parent, { bio, willDo, wontDo, askMe, conditions, portrait, banner }, context) => {
             // 
         }
     }
