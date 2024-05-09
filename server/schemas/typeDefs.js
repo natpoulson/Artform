@@ -10,6 +10,16 @@ const enumStatuses = () => {
 }
 
 const typeDefs = `
+type AboutContent {
+    portrait: Media
+    banner: Media
+    bio: String
+    willDo: [String]
+    wontDo: [String]
+    askMe: [String]
+    conditions: [String]
+}
+
 type Option {
     name: String!
     price: Float!
@@ -190,6 +200,7 @@ input UpdateCommissionAttributes {
     title: String
     description: String
     status: CommissionStatus
+    private: Boolean
     anonymous: Boolean
 }
 
@@ -223,6 +234,7 @@ input NewTransaction {
 union UpdateUserResult = User | Auth
 
 type Query {
+    about: AboutContent
     user(query: UserSearch!): User
     me: User
     commissions: [Commission]
@@ -245,6 +257,7 @@ type Mutation {
     updateWork(id: ID!, attributes: UpdateWorkAttributes!): Work
     payBalance(id: ID!, transaction: NewTransaction!): Balance
     updateTransaction(id: ID!, status: TransactionStatus): Transaction
+    setAboutContent(bio: String, willDo: [String], wontDo: [String], askMe: [String], conditions: [String], portrait: ID, banner: ID): AboutContent
 }
 `;
 

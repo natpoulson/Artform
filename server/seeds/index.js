@@ -3,14 +3,16 @@ const {
     addonData,
     attributeData,
     optionData,
-    userData
+    userData,
+    contentData
 } = require('./data');
 const {
     User,
     Commission,
     Option,
     Addon,
-    Attribute
+    Attribute,
+    AboutContent
 } = require('../models');
 
 db.once('open', async function () {
@@ -18,6 +20,8 @@ db.once('open', async function () {
     for (const collection of collections) {
         await db.dropCollection(collection.name);
     }
+
+    await AboutContent.create(contentData);
 
     // Initialise sample addons and options
     const addonSet = await Addon.insertMany(addonData);

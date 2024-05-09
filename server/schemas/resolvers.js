@@ -4,23 +4,24 @@ const {
     Commission,
     Balance,
     Work,
-    Media
+    Media,
+    AboutContent
 } = require('../models');
 const {
     gQLForbiddenErr,
     gQLNotFoundErr,
     gQLValidationErr,
-    gQLGeneralFailure
-} = require('../utils/resolverMiddleware');
-
-const isLoggedIn = (context) => {
-    if (!context.user) {
-        throw AuthError;
-    }
-}
+    gQLGeneralFailure,
+    isLoggedIn,
+    isDiff,
+    isLegal
+} = require('../utils/resolverHelpers');
 
 const resolvers = {
     Query: {
+        about: async (parent) => {
+            return await AboutContent.find({});
+        },
         user: async (parent, { id, email }, context) => {
             try {
                 const user = await User.findOne( {_id: id, email: email } );
@@ -290,16 +291,74 @@ const resolvers = {
             }
         },
         addCommission: async (parent, { title, description, options, addons, private, anonymous }, context) => {
-            // TBA
+            try {
+                isLoggedIn(context);
+
+                if (!title) {
+                    gQLValidationErr("You need to provide a title");
+                }
+
+                const newComm = {};
+
+                newComm.title = title;
+                newComm.commissioner = context.user._id;
+                newComm.description = description;
+                newComm.private = private;
+                newComm.anonymous = anonymous;
+                newComm.options = [...options];
+                newComm.addons = [...addons];
+
+                const commission = await Commission.create(newComm);
+
+                if (!commission) {
+                    gQLGeneralFailure("Failed to create commission. Please try again later.");
+                }
+
+                return commission;
+            } catch (error) {
+                return error;
+            }
         },
         updateCommission: async (parent, { id, attributes }, context) => {
-            // TBA
+            isLoggedIn(context);
+
+            if (!id || !attributes) {
+                gQLValidationErr("You must provide an id and attributes to update the commission with.");
+            }
+
+            const commission = await Commission.findById(id);
+
+            if (!context.user._id === commission.commissioner) {
+                gQLForbiddenErr("You're not authorised to edit this commission.");
+            }
+
+            const { title, description, status, private, anonymous } = attributes;
+
+            if (isDiff(title, commission.title)) {
+                commission.title = title;
+            }
+            if (isDiff(description, commission.description)) {
+                commission.description = description;
+            }
+            if (isDiff(status, commission.status) && isLegal(status, commission.status)) {
+                commission.status = status;
+            }
+            if (!private === commission.private) {
+                commission.private = private;
+            }
+            if (!anonymous === commission.anonymous) {
+                commission.anonymous = anonymous;
+            }
+
         },
         addWork: async (parent, { title, description, commission, private, paid, publish, feature }, context) => {
             // TBA
         },
         updateWork: async (parent, { id, attributes }) => {
             // TBA
+        },
+        setAbout: async (parent, { bio, willDo, wontDo, askMe, conditions, portrait, banner }, context) => {
+            // 
         }
     }
 };

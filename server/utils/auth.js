@@ -10,7 +10,11 @@ module.exports = {
         }
     }),
     authMiddleware: function ({ req } ) {
-        const token = req.headers.authorization.split(' ').pop.trim();
+        const token = req.body.token || req.query.token || req.headers.authorization;
+
+        if (req.headers.authorization) {
+            
+        }
         
         if (!token) {
             return req;

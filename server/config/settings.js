@@ -7,6 +7,7 @@ const IN_PROGRESS = 'In Progress';
 const ON_HOLD = 'On Hold';
 const COMPLETED = 'Completed';
 const REJECTED = 'Rejected';
+const CANCELLED = 'Cancelled';
 
 // Status registration
 const STATUSES = [
@@ -15,8 +16,55 @@ const STATUSES = [
     IN_PROGRESS,
     ON_HOLD,
     COMPLETED,
-    REJECTED
+    REJECTED,
+    CANCELLED
 ];
+
+const LEGAL_CHANGES = [
+    { 
+        initial: NEW,
+        legal: [
+            QUEUED,
+            REJECTED
+        ]
+    },
+    {
+        initial: QUEUED,
+        legal: [
+            IN_PROGRESS,
+            ON_HOLD,
+            CANCELLED
+        ]
+    },
+    {
+        initial: IN_PROGRESS,
+        legal: [
+            ON_HOLD,
+            COMPLETED,
+            CANCELLED
+        ]
+    },
+    {
+        initial: ON_HOLD,
+        legal: [
+            IN_PROGRESS,
+            COMPLETED,
+            CANCELLED
+        ]
+    },
+    {
+        initial: COMPLETED,
+        legal: []
+    },
+    {
+        initial: REJECTED,
+        legal: []
+    },
+    {
+        initial: CANCELLED,
+        legal: []
+    }
+]
 
 // Number of times for a password to be hashed
 const BCRYPT_HASHCOUNT = 10;
@@ -33,6 +81,7 @@ const DEFAULT_DEPOSIT = 10;
 
 module.exports = {
     STATUSES,
+    LEGAL_CHANGES,
     BCRYPT_HASHCOUNT,
     JWT_SECRET,
     JWT_EXPIRATION,
