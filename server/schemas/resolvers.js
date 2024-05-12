@@ -295,7 +295,7 @@ const resolvers = {
                 isLoggedIn(context);
 
                 if (!title) {
-                    gQLValidationErr("You need to provide a title");
+                    gQLValidationErr("You need to provide a title.");
                 }
 
                 const newComm = {};
@@ -320,36 +320,47 @@ const resolvers = {
             }
         },
         updateCommission: async (parent, { id, attributes }, context) => {
-            isLoggedIn(context);
+            try {
+                isLoggedIn(context);
 
-            if (!id || !attributes) {
-                gQLValidationErr("You must provide an id and attributes to update the commission with.");
-            }
+                if (!id || !attributes) {
+                    gQLValidationErr("You must provide an id and attributes to update the commission with.");
+                }
+    
+                const commission = await Commission.findById(id);
+    
+                if (!context.user._id === commission.commissioner) {
+                    gQLForbiddenErr("You're not authorised to edit this commission.");
+                }
+    
+                const { title, description, status, private, anonymous } = attributes;
+    
+                if (isDiff(title, commission.title)) {
+                    commission.title = title;
+                }
+                if (isDiff(description, commission.description)) {
+                    commission.description = description;
+                }
+                if (isDiff(status, commission.status) && isLegal(status, commission.status)) {
+                    commission.status = status;
+                }
+                if (!private === commission.private) {
+                    commission.private = private;
+                }
+                if (!anonymous === commission.anonymous) {
+                    commission.anonymous = anonymous;
+                }
 
-            const commission = await Commission.findById(id);
+                const updatedCommission = await commission.save();
 
-            if (!context.user._id === commission.commissioner) {
-                gQLForbiddenErr("You're not authorised to edit this commission.");
-            }
+                if (!updatedCommission) {
+                    gQLGeneralFailure("Commission failed to update. Please try again later.");
+                }
 
-            const { title, description, status, private, anonymous } = attributes;
-
-            if (isDiff(title, commission.title)) {
-                commission.title = title;
+                return updatedCommission;
+            } catch (error) {
+                return error;
             }
-            if (isDiff(description, commission.description)) {
-                commission.description = description;
-            }
-            if (isDiff(status, commission.status) && isLegal(status, commission.status)) {
-                commission.status = status;
-            }
-            if (!private === commission.private) {
-                commission.private = private;
-            }
-            if (!anonymous === commission.anonymous) {
-                commission.anonymous = anonymous;
-            }
-
         },
         addWork: async (parent, { title, description, commission, private, publish, feature }, context) => {
             try {
@@ -368,7 +379,7 @@ const resolvers = {
                 const work = await Work.create(newWork);
 
                 if (!work) {
-                    gQLGeneralFailure("Failed to create new work.");
+                    gQLGeneralFailure("Failed to create new work. Please try again later.");
                 }
 
                 return work;
@@ -376,11 +387,94 @@ const resolvers = {
                 return error;
             }
         },
-        updateWork: async (parent, { id, attributes }) => {
-            // TBA
+        updateWork: async (parent, { id, attributes }, context) => {
+            try {
+                if (!context.user.isCreator) {
+                    gQLForbiddenErr("You must be the creator to change works.");
+                }
+
+                const work = await Work.findById(id);
+
+                if (!work) {
+                    gQLNotFoundErr("Could not find the work specified.");
+                }
+                const { title, description, publish, feature } = attributes;
+
+                if (isDiff(work.title, title)) {
+                    work.title = title;
+                }
+                if (isDiff(work.description, description)) {
+                    work.description = description;
+                }
+                if (!work.publish === publish) {
+                    work.publish = publish;
+                }
+                if (!work.feature === feature) {
+                    work.feature = feature;
+                }
+
+                const updatedWork = await work.save();
+
+                if (!updatedWork) {
+                    gQLGeneralFailure("Failed to update work. Please try again later.");
+                }
+
+                return updatedWork;
+            } catch (error) {
+                return error;
+            }
         },
         setAboutContent: async (parent, { bio, willDo, wontDo, askMe, conditions, portrait, banner }, context) => {
-            // 
+            try {
+                if (!context.user.isCreator) {
+                    gQLForbiddenErr("You must be the creator to edit this page.")
+                }
+                const about = await AboutContent.find({});
+
+                let updatedContent;
+                if (!about) {
+                    updatedContent = await AboutContent.create({
+                        bio: bio,
+                        willDo: willDo,
+                        wontDo: wontDo,
+                        askMe: askMe,
+                        conditions: conditions,
+                        portrait: portrait,
+                        banner: banner
+                    });
+
+                    return updatedContent;
+                }
+
+                if (isDiff(about.bio, bio)) {
+                    about.bio = bio;
+                }
+                if (isDiff(about.willDo, willDo)) {
+                    about.willDo = willDo;
+                }
+                if (isDiff(about.askMe, askMe)) {
+                    about.askMe = askMe;
+                }
+                if (isDiff(about.conditions, conditions)) {
+                    about.conditions = conditions;
+                }
+                if (isDiff(about.portrait, portrait)) {
+                    about.portrait = portrait;
+                }
+                if (isDiff(about.banner, banner)) {
+                    about.banner = banner;
+                }
+
+                updatedContent = await about.save();
+
+                if (!updatedContent) {
+                    gQLGeneralFailure("Could not update the content of this page.");
+                }
+
+                return updatedContent;
+            } catch (error) {
+                return error;
+            }
         }
     }
 };
