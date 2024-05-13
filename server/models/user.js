@@ -19,7 +19,7 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    totalOwing: { type: Schema.Types.Decimal128 },
+    totalOwing: { type: Schema.Types.Decimal128, default: 0.00 },
     commissions: [ { type: Schema.Types.ObjectID, ref: 'Commission' } ]
 }, { timestamps: true, virtuals: true });
 
